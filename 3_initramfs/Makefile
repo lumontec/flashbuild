@@ -1,35 +1,31 @@
 # Generate initramfs cpio archive
 
+initramfs: fs archive
 
-
-initramfs: fs
+# Generate cpio archive
+.PHONY: archive
+archive:
 	# Generate initramfs as cpio archive
-	@cd ./build/fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
+	@cd ./fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
 
+# Generate filesystem from container
 .PHONY: fs
 fs:
 	# Build the docker image
-	@docker build -t flash_initramfs ./build
+	@docker build -t flash_initramfs .
 	# Create the container if not exists
-	@docker start flash_initramfs 2> /dev/null || docker run --name flash_initramfs flash_initramfs
-	# Compress docker fs as archive
-	@docker export flash_initramfs > ./build/flash_initramfs.tar
+	@docker create --name flash_initramfs flash_initramfs
 	# Extract archive inside fs directory
-	@mkdir -p ./build/fs
-	@tar -xvf ./build/flash_initramfs.tar -C ./build/fs
-	# Remove noisy docker leftover folders
-	@rm -rf ./build/fs/dev
-	# Install init script
-	@cp ./build/init ./build/fs
+	@mkdir -p ./fs
+	# Copy docker filesystem in fs folder
+	@docker cp flash_initramfs:/fs/ .
 
-	
+# Clean build files	
 .PHONY: clean
 clean:
 	# Clean dirty folders
-	@rm -rf ./build/fs ./build/flash_initramfs.tar ./build/initramfs.cpio.gz
+	@rm -rf ./fs ./flash_initramfs.tar ./initramfs.cpio.gz
 	# Remove previous container
-	@docker container rm flash_initramfs | true
+	@docker container rm flash_initramfs -f | true
 	# Remove previous image
-	@docker rmi flash_initramfs | true
-
-
+	@docker rmi flash_initramfs -f | true
