@@ -17,6 +17,8 @@ fs:
 	# Extract archive inside fs directory
 	@mkdir -p ./build/fs
 	@tar -xvf ./build/flash_initramfs.tar -C ./build/fs
+	# Remove noisy docker leftover folders
+	@rm -rf ./build/fs/dev
 	# Install init script
 	@cp ./build/init ./build/fs
 
