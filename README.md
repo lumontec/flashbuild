@@ -9,8 +9,34 @@ The project leverages the beauty and portability of latest docker technology, an
 
 ### Let`s roll ...
 In this example we roll an extremely minimal image with no rootfs, everything gets loaded in ram by making use of initramfs:
-##### 1 Copy kernel binary
-
+##### 1 Build your minimal kernel
+We clone the official kernel repo and build the core with default configuration for our arch
+```bash
+cd ./2_kernel/build
+git clone https://github.com/torvalds/linux.git .
+git checkout v5.9
+make defconfig
+make vmlinux -j8
+```
+Flashbuild will look inside the **/2_kernel/build** folder for the **vmlinux** binary.
 ##### 2 Generate your initramfs
+We use a simple Dockerfile and an init script to mount an initramfs after the kernel is loaded
+```bash
+ls ./2_initramfs/build
+Dockerfile  init
+```
+Dockerfile:
+```Dockerfile
+# Alpine linux
+FROM alpine:latest
+RUN apk update
+# Install our init system
+RUN apk add openrc
+```
+Init:
+```bash
+
+```
+
 ##### 3 Generate your rootfs
 ##### 4 Flashbuild your image
