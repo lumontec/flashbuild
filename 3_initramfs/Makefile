@@ -1,6 +1,27 @@
 # Generate initramfs cpio archive
 
-initramfs: fs archive
+# Supported architectures
+SUPP_ARCH := 	linux/amd64 \
+		linux/arm64 \
+		linux/riscv64 \
+		linux/ppc64le \
+		linux/s390x \
+		linux/386 \
+		linux/arm/v7 \
+		linux/arm/v6 
+
+# Final target
+.PHONY: all
+all: archcheck docker fs archive
+
+# Check if architecture is supported
+.PHONY: archcheck
+archcheck:
+ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
+	$(info architecture ARCH = '$(ARCH)' was found)
+else
+	$(error ARCH = '$(ARCH)' does not exist in '$(SUPP_ARCH)')
+endif
 
 # Generate cpio archive
 .PHONY: archive
@@ -11,14 +32,19 @@ archive:
 # Generate filesystem from container
 .PHONY: fs
 fs:
-	# Build the docker image
-	@docker build -t flash_initramfs .
-	# Create the container if not exists
-	@docker create --name flash_initramfs flash_initramfs
-	# Extract archive inside fs directory
+	# Copy from container to fs directory
 	@mkdir -p ./fs
 	# Copy docker filesystem in fs folder
 	@docker cp flash_initramfs:/fs/ .
+
+# Build containers
+.PHONY: docker
+docker:
+	# Build the docker image
+	@docker buildx build --platform $(ARCH) -t flash_initramfs .
+	# Create the container if not exists
+	@docker create --name flash_initramfs flash_initramfs
+
 
 # Clean build files	
 .PHONY: clean
@@ -41,5 +67,13 @@ distclean:
 	# Remove previous image
 	@docker rmi flash_initramfs -f | true
 
-
-	
+.PHONY: help
+help:
+	@echo  'Cleaning targets:'
+	@echo  '  clean		  - Remove most generated files but keep the sources'
+	@echo  '  distclean	  - Remove generated and sources'
+	@echo  'Partial targets:'
+	@echo  '  docker	  - Rebuild container image and instance'
+	@echo  '  fs		  - Export filesystem to fs folder'
+	@echo  'Other generic targets:'
+	@echo  '  all		  - Build all targets' 
