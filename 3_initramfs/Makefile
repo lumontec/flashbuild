@@ -25,13 +25,13 @@ endif
 
 # Generate cpio archive
 .PHONY: archive
-archive:
+archive: 
 	# Generate initramfs as cpio archive
 	@cd ./fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
 
 # Generate filesystem from container
 .PHONY: fs
-fs:
+fs: docker
 	# Copy from container to fs directory
 	@mkdir -p ./fs
 	# Copy docker filesystem in fs folder
@@ -39,9 +39,9 @@ fs:
 
 # Build containers
 .PHONY: docker
-docker:
+docker: archcheck
 	# Build the docker image
-	@docker buildx build --platform $(ARCH) -t flash_initramfs .
+	docker buildx build --platform=$(ARCH) -t flash_initramfs .
 	# Create the container if not exists
 	@docker create --name flash_initramfs flash_initramfs
 
@@ -73,7 +73,7 @@ help:
 	@echo  '  clean		  - Remove most generated files but keep the sources'
 	@echo  '  distclean	  - Remove generated and sources'
 	@echo  'Partial targets:'
-	@echo  '  docker	  - Rebuild container image and instance'
+	@echo  '  docker ARCH=	  - Rebuild container image and instance'
 	@echo  '  fs		  - Export filesystem to fs folder'
 	@echo  'Other generic targets:'
-	@echo  '  all		  - Build all targets' 
+	@echo  '  all ARCH=	  - Build all targets' 
