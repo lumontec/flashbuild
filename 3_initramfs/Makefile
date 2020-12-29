@@ -35,7 +35,7 @@ clean:
 .PHONY: distclean
 distclean:
 	# Clean all but these files / folders
-	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} +	
+	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} + > /dev/null
 	# Remove previous container
 	@docker container rm flash_initramfs -f | true
 	# Remove previous image
