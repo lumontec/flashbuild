@@ -29,3 +29,17 @@ clean:
 	@docker container rm flash_initramfs -f | true
 	# Remove previous image
 	@docker rmi flash_initramfs -f | true
+
+
+# Distclean build files	
+.PHONY: distclean
+distclean:
+	# Clean all but these files / folders
+	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} +	
+	# Remove previous container
+	@docker container rm flash_initramfs -f | true
+	# Remove previous image
+	@docker rmi flash_initramfs -f | true
+
+
+	
