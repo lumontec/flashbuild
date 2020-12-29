@@ -4,8 +4,8 @@ Target is to cover all the cases in which you need a specialized quick and dirty
 Can be used for testing an executable full stack (e.g. debugging both user and kernel interaction) in qemu as well as to create some simple bootable image for your cross platform bare metal hardware.
 The project leverages the beauty and portability of latest docker technology, and takes inspiration by the excellent work of:
 
-[https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html](https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html)
-[https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html](https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html)
+[https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html](https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html)  
+[https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html](https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html)  
 
 ### Let`s roll ...
 In this example we roll an extremely minimal image with no rootfs, everything gets loaded in ram by making use of initramfs:
@@ -25,39 +25,44 @@ We use a simple Dockerfile and an init script to mount an initramfs after the ke
 - install the packages that we want
 - create some user
 - cleanup filesystem
-- overwrite inittab to initialize ttyS0 required by qemu
 - add an init script to be called by the kernel
 - that`s it !
 
 Dockerfile:
 ```Dockerfile
-# Alpine linux
-# Base image --------------------------
-# Alpine linux
-FROM alpine:latest AS base
-RUN apk update
-# Add openrc service manager
-RUN apk update openrc udev
-# Create a group and user
-RUN addgroup -S lucagroup && adduser -S luca -G lucagroup
-# We set the login credentials
-RUN echo "luca:luca" | chpasswd
+
+# Base image ---------------------------
+# 
+# We download a basic ubuntu image to copy
+# our fs tree 
+
+FROM ubuntu:20.04 AS base
+RUN  apt update 
+RUN  apt -y upgrade 
+
+# Install systemd init system
+RUN  apt install -y systemd udev
+
+# Change password for root
+RUN echo "root:root" | chpasswd
+
 
 # Patch fs ----------------------------
-# Copy all fs to patching stage 
+# 
+# We install a basic /init script that launches
+# systemd after being invoked by the kernel
+
+# Copy all fs workdir where we patch our fs 
 FROM alpine:latest
 WORKDIR /fs
 COPY --from=base / .
-# Remove bogus /dev and /etc/mtab
-RUN rm -rf dev etc/mtab tmp
-# Wipe fstab
-RUN echo > etc/fstab
+
 # Add init script
 ADD ./src/init init
-# Add inittab file
-ADD ./src/inittab etc/inittab
 ```
+
 Init file:
+
 ```bash
 #!/bin/sh
 mount -t proc none /proc
@@ -65,21 +70,6 @@ mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 echo -e "\nBoot took $(cut -d' ' -f1 /proc/uptime) seconds\n"
 exec /bin/sh
-```
-Inittab file:
-```bash
-# /etc/inittab
-::sysinit:/sbin/openrc sysinit
-::sysinit:/sbin/openrc boot
-::wait:/sbin/openrc default
-# Set up a couple of getty's
-tty1::respawn:/sbin/getty 38400 tty1
-# Put a getty on the serial port
-ttyS0::respawn:/sbin/getty -L ttyS0 115200 vt100
-# Stuff to do for the 3-finger salute
-::ctrlaltdel:/sbin/reboot
-# Stuff to do before rebooting
-::shutdown:/sbin/openrc shutdown
 ```
 Generate initramfs compressed archive:
 ```bash
@@ -90,5 +80,4 @@ make -C ./3_initramfs/ initramfs
 ./emulate.sh
 ```
 
-##### 3 Generate your rootfs
-##### 4 Flashbuild your image
+
