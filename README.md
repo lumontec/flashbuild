@@ -9,11 +9,44 @@ The project leverages the beauty and portability of latest docker technology, an
 
 ### Let`s roll ...
 In this example we roll an extremely minimal image with no rootfs, everything gets loaded in ram by making use of initramfs:
+
+##### 0 Setup your system
+
+Install kernel build tools:
+```bash
+sudo apt update
+sudo apt install git make gcc device-tree-compiler bison flex libssl-dev libncurses-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
+```
+Install and configure docker
+```bash
+# Install required docker tools
+sudo apt install docker-ce
+# Check your docker version > 19.0
+docker --version
+#Docker version 19.03.14, build 5eb3275d40
+```
+Configure docker extended features (buildx)
+```bash
+# Install binfmt cross instruction support
+docker run --privileged --rm tonistiigi/binfmt --install all
+# Stop docker services before reconfiguration
+sudo systemctl stop docker docker.service
+#set: "experimental": "enabled" in your ~/.docker/config.json
+#set: '{"experimental": true}'  in your /etc/docker/daemon.json
+sudo systemctl start docker docker.service
+# Check buildx supported architectures for your node
+docker buildx ls
+# default default  running linux/amd64, linux/arm64, linux/riscv64, linux/ppc64le, linux/s390x, linux/386, linux/arm/v7, linux/arm/v6
+```
+Install qemu-kvm for emulation
+```bash
+sudo apt install qemu-kvm qemu virt-manager virt-viewer libvirt-bin qemu-system-aarch64 qemu-system-arm
+```
+
 ##### 1 Build your minimal kernel
 We clone the official kernel repo and build the smallest kernel core with default configuration for our arch
 ```bash
 # Install kernel required build packages
-apt install git make gcc device-tree-compiler bison flex libssl-dev libncurses-dev gcc-arm-linux-gnueabi gcc-aarch64-linux-gnu
 cd ./2_kernel/build
 git clone https://github.com/torvalds/linux.git .
 git checkout v5.9
@@ -78,8 +111,7 @@ Generate initramfs compressed archive:
 make -C ./3_initramfs/ initramfs
 ```
 ##### 4 Emulate
+Setup your emulate.sh file and launch it
 ```bash
 ./emulate.sh
 ```
-
-
