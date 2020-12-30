@@ -16,7 +16,6 @@ HOST_ARCH := $(shell uname -m)
 # Support for cross build
 CROSS_BUILD := none
 
-
 # Some helpers
 
 # Silence stdout
@@ -34,77 +33,61 @@ else
 CROSS_BUILD=build
 endif
 
-
-# Final target
-.PHONY: all
-all: fs archive
-
-
-# Generate cpio archive
-.PHONY: archive
-archive:
-	# Generate initramfs as cpio archive
-	@cd ./fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
-
-# Generate filesystem from container
-.PHONY: fs
-fs: docker
-	# Copy from container to fs directory
-	@mkdir -p ./fs
-	# Copy container filesystem in fs.tar
-	@docker export flash_initramfs > ./fs.tar
-	# Etracting container fs 
-	@tar -xvf ./fs.tar -C ./fs
-
-# docker depends on cross build 
-.PHONY: docker
-docker: $(CROSS_BUILD) 
-	@echo 'Creating container ..'
-	@docker create --name flash_initramfs flash_initramfs;
-
-# Cross build 
-.PHONY: crossbuild
-crossbuild:
-	$(info architecture ARCH = '$(ARCH)' was found)
-	@echo 'cross build:' $(CROSS_BUILD);
-	@echo 'CROSS building image for ARCH (EXPERIMENTAL)' $(ARCH);
-	@docker buildx build --platform=$(ARCH) -t flash_initramfs --no-cache .;
-
-# Build 
-.PHONY: build
-build:
-	$(info ARCH = '$(ARCH)' does not exist in '$(SUPP_ARCH)' will build against HOST architecture)
-	@echo 'cross build:' $(CROSS_BUILD);
-	echo 'Building image for ARCH' $(HOST_ARCH); 
-	docker build -t  flash_initramfs --no-cache .;
+# Check if DEST is set
+test_dest: 
+ifeq ($(DEST),)
+$(error 'DEST path is not set')
+else
+$(info 'will save to DEST=$(DEST)')
+endif
 
 
-# Clean build files	
-.PHONY: clean
-clean:
-	# Clean dirty folders
-	@rm -rf ./fs ./flash_initramfs.tar ./initramfs.cpio.gz;					
-	# Remove previous container								
-	@docker container rm flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
-	# Remove previous image									
-	@docker rmi flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
-	# Remove eventual leftover dandling images						
-	@docker rmi -f $(shell docker images -f "dangling=true" -q) $(SIL_STDE) $(IGNORE_FAIL);
+# save 
+.PHONY: 
+save: test_dest
+	# cleaning
+	@echo 'cleaning previous state for DEST=$(DEST)'
+	@rm -rf $(DEST)/1_bootloader $(DEST)/2_kernel $(DEST)/3_initramfs $(DEST)/4_rootfs
+	# bootloader 
+	@echo 'create 1_bootloader directory under DEST=$(DEST)';
+	@mkdir -p $(DEST)/1_bootloader;
+	@echo 'saving 1_bootloader sources to DEST=$(DEST)/1_bootloader';
+	@cp `git ls-files --cached --others --exclude-standard ./1_bootloader` $(DEST)/1_bootloader;
+	# kernel 
+	@echo 'create 2_kernel directory under DEST=$(DEST)';
+	@mkdir -p $(DEST)/2_kernel;
+	@echo 'saving 2_kernel sources to DEST=$(DEST)/2_kernel';
+	@cp `git ls-files --cached --others --exclude-standard ./2_kernel` $(DEST)/2_kernel;
+	# initramfs 
+	@echo 'create 3_initramfs directory under DEST=$(DEST)';
+	@mkdir -p $(DEST)/3_initramfs;
+	@echo 'saving 3_initramfs sources to DEST=$(DEST)/3_initramfs';
+	@cp `git ls-files --cached --others --exclude-standard ./3_initramfs` $(DEST)/3_initramfs;
+	@cp -rn ./3_initramfs/Dockerfile $(DEST)/3_initramfs;
+	@cp -rn ./3_initramfs/src $(DEST)/3_initramfs;
+	# rootfs 
+	@echo 'create 4_rootfs directory under DEST=$(DEST)';
+	@mkdir -p $(DEST)/4_rootfs;
+	@echo 'saving 4_rootfs sources to DEST=$(DEST)/4_rootfs';
+	@cp `git ls-files --cached --others --exclude-standard ./4_rootfs` $(DEST)/4_rootfs;
+	# emulator 
+	@echo 'saving emulation scripts under DEST=$(DEST)';
+	@cp -rn emulate* $(DEST);
 
-# Distclean build files	
-.PHONY: distclean
-distclean: clean
-	# Clean all but these files / folders
-	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} + $(SIL_STDO);
 
 .PHONY: help
 help:
-	@echo  'Supported architectures: $(SUPP_ARCH)' 
-	@echo  'Cleaning targets:'
+	@echo  'Project targets:'
 	@echo  '  clean		  - Remove most generated files but keep the sources'
 	@echo  '  distclean	  - Remove generated and sources'
-	@echo  'Partial targets:'
-	@echo  '  docker ARCH=	  - Rebuild container image and instance'
-	@echo  '  fs		  - Export filesystem to fs folder'
-	@echo  'Other generic targets:'
-	@echo  '  all ARCH=	  - Build all targets' 
+	@echo  '  save DEST=	  - Saves current workspace state of SOURCES in your DEST path'
+	@echo  '  load LOAD=	  - Load saved sources inside current workspace' 
+	@echo  '  init		  - Initialize a clean workspace' 
+	@echo  'Modules targets:'
+	@echo  '  bootloader	  - Access bootloader make commands'
+	@echo  '  kernel	  - Access kernel make commands'
+	@echo  '  initramfs	  - Access initramfs commands'
+	@echo  '  rootfs	  - Access rootfs commands'
+
+
+
