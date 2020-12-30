@@ -73,6 +73,10 @@ import: setarch import_core_$(TARGET)
 	$(MAKE) -C ./src modules_install INSTALL_MOD_PATH=../kmodules $(IGNORE_FAIL)
 	@echo 'Importing kernel modules from ./src'
 	$(MAKE) -C ./src headers_install INSTALL_HDR_PATH=../kheaders $(IGNORE_FAIL)
+	# Import config file
+	@cp ./src/.config config
+	# Import kernelversion
+	@cd ./src && $(MAKE) --no-print-directory kernelversion > ../version;
 
 # Intel 64 bit targets
 import_core_linux/amd64 import_core_linux/x86_64:
