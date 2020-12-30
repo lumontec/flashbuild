@@ -14,8 +14,8 @@ SUPP_ARCH := 	linux/x86_64 \
 
 # Host architecture
 HOST_ARCH := $(shell uname -m)
-# Support for cross build
-CROSS_BUILD := none
+# Target architecture 
+TARGET := none
 
 
 # Some helpers
@@ -29,14 +29,6 @@ IGNORE_FAIL = || true
 
 
 
-# Check if architecture is supported in case sets CROSS_BUILD
-ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
-CROSS_BUILD=crossbuild
-else
-CROSS_BUILD=build
-endif
-
-
 .PHONY: help
 help:
 	@echo  'Supported architectures: $(SUPP_ARCH)' 
@@ -48,6 +40,15 @@ help:
 	@echo  '  import ARCH=	  - Import all kernel modules and header binaries from ./src'
 	@echo  'Other generic targets:'
 	@echo  '  all ARCH=	  - Build all targets' 
+
+
+setarch:
+# Set target architecture (ARCH if supported otherwise HOST arch)
+ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
+TARGET=$(ARCH)
+else
+TARGET=linux/$(HOST_ARCH)
+endif
 
 
 # Final target
@@ -65,20 +66,20 @@ install:
 
 # Import headers modules 
 .PHONY: import 
-import: import_core_$(ARCH)
+import: import_core_$(TARGET)
 	@echo 'Importing kernel modules from ./src'
 	$(MAKE) -C ./src modules_install INSTALL_MOD_PATH=../kmodule
 	@echo 'Importing kernel modules from ./src'
 	$(MAKE) -C ./src headers_install INSTALL_HDR_PATH=../kheaders
 
 # Intel 64 bit targets
-import_core_linux/amd64 import_core_linux/x86_64:
+import_core_linux/amd64 import_core_linux/x86_64: setarch
 	@echo 'importing amd64 binaries' 
 	@cp -rn ./src/arch/x86_64/boot/bzImage .
 	@cp -rn ./src/vmlinux .
 
 # Arm 64 bit targets
-import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6:
+import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6: setarch
 	@echo 'importing arm64 binaries' 
 	@cp -rn ./src/arch/arm64/boot/Image .
 	@cp -rn ./src/vmlinux .
