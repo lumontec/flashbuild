@@ -80,15 +80,15 @@ import: setarch import_core_$(TARGET)
 
 # Intel 64 bit targets
 import_core_linux/amd64 import_core_linux/x86_64:
-	@echo 'importing amd64 binaries' 
-	@cp -rn ./src/arch/x86_64/boot/bzImage .
-	@cp -rn ./src/vmlinux . 
+	@echo 'importing amd64 binaries, dereference symlinks' 
+	@cp -L ./src/arch/x86_64/boot/bzImage .
+	@cp -L ./src/vmlinux . 
 
 # Arm 64 bit targets
 import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6:
-	@echo 'importing arm64 binaries' 
-	@cp -rn ./src/arch/arm64/boot/Image .
-	@cp -rn ./src/vmlinux .
+	@echo 'importing arm64 binaries, dereference symlinks' 
+	@cp -L ./src/arch/arm64/boot/Image .
+	@cp -L ./src/vmlinux .
 
 # Clean build files	
 .PHONY: clean
