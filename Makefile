@@ -1,20 +1,5 @@
-# Generate initramfs cpio archive
+# Main commands
 
-# Supported architectures
-SUPP_ARCH := 	linux/x86_64 \
-		linux/amd64 \
-		linux/arm64 \
-		linux/riscv64 \
-		linux/ppc64le \
-		linux/s390x \
-		linux/386 \
-		linux/arm/v7 \
-		linux/arm/v6 
-
-# Host architecture
-HOST_ARCH := $(shell uname -m)
-# Support for cross build
-CROSS_BUILD := none
 
 # Some helpers
 
@@ -26,20 +11,53 @@ SIL_STDE = 2>/dev/null
 IGNORE_FAIL = || true
 
 
-# Check if architecture is supported in case sets CROSS_BUILD
-ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
-CROSS_BUILD=crossbuild
-else
-CROSS_BUILD=build
-endif
+.PHONY: help
+help:
+	@echo
+	@echo  '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' 
+	@echo  '!!!!  Welcome to FLASHbuild !!!!' 
+	@echo  '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' 
+	@echo
+	@echo  'Single modules have to be compiled independently, there is NO single make all command here at the top level'
+	@echo  'you can find several plug and play examples inside the ./projects directory, have fun !'
+	@echo  'Project targets:'
+	@echo  '  clean		  - Remove most generated files but keep the sources'
+	@echo  '  distclean	  - Remove generated and sources'
+	@echo  '  save DEST=	  - Saves current workspace state of SOURCES in your DEST path'
+	@echo  '  load PROJ=	  - Load saved sources inside current workspace' 
+	@echo  '  init		  - Initialize a clean workspace' 
+	@echo  'Modules targets:'
+	@echo  '  bootloader	  - Access bootloader make commands'
+	@echo  '  kernel	  - Access kernel make commands'
+	@echo  '  initramfs	  - Access initramfs commands'
+	@echo  '  rootfs	  - Access rootfs commands'
+	@echo
 
+.PHONY: test_dest
 # Check if DEST is set
 test_dest: 
 ifeq ($(DEST),)
-$(error 'DEST path is not set')
+	$(error 'DEST path is not set')
 else
-$(info 'will save to DEST=$(DEST)')
+	$(info 'will save to DEST=$(DEST)')
 endif
+
+
+.PHONY: test_proj
+# Check if SRC is set
+test_proj: 
+	@if [ -d "$(PROJ)" ];						\
+	then								\
+		echo "Found project $(PROJ), start loading";		\
+	else								\
+		echo "Error: Project PROJ=$(PROJ) does not exists or has not been passed as an argument.";	\
+		exit 1;							\
+	fi;
+
+# Ask for confirmation
+.PHONY: confirm
+confirm:
+	@echo -n "This will completely wipe your current workspace are you sure? [y/N] " && read ans && [ $${ans:-N} = y ];
 
 
 # save 
@@ -74,20 +92,23 @@ save: test_dest
 	@echo 'saving emulation scripts under DEST=$(DEST)';
 	@cp -rn emulate* $(DEST);
 
+# load 
+.PHONY: 
+load: test_proj confirm
+	# cleaning
+	@echo 'cleaning workspace'
+	@rm -rf ./1_bootloader ./2_kernel ./3_initramfs ./4_rootfs emulate*
+	# loading 
+	@echo 'loading project from $(PROJ)'
+	@cp -rn $(PROJ)/* .
 
-.PHONY: help
-help:
-	@echo  'Project targets:'
-	@echo  '  clean		  - Remove most generated files but keep the sources'
-	@echo  '  distclean	  - Remove generated and sources'
-	@echo  '  save DEST=	  - Saves current workspace state of SOURCES in your DEST path'
-	@echo  '  load LOAD=	  - Load saved sources inside current workspace' 
-	@echo  '  init		  - Initialize a clean workspace' 
-	@echo  'Modules targets:'
-	@echo  '  bootloader	  - Access bootloader make commands'
-	@echo  '  kernel	  - Access kernel make commands'
-	@echo  '  initramfs	  - Access initramfs commands'
-	@echo  '  rootfs	  - Access rootfs commands'
-
-
+# init 
+.PHONY: 
+init: confirm
+	# cleaning
+	@echo 'cleaning workspace'
+	@rm -rf ./1_bootloader ./2_kernel ./3_initramfs ./4_rootfs emulate*
+	# loading 
+	@echo 'loading project from ./projects/TEMPLATE'
+	@cp -rn ./projects/TEMPLATE/* .
 
