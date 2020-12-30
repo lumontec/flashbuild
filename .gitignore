@@ -1,9 +1,9 @@
-# Ignore everything
-*
+# Ignore top level folders 
+/1_bootloader
+/2_kernel
+/3_initramfs
+/4_rootfs
 
-# But not these files...
-!.gitignore
-!Makefile
-!README.md
-!projects
-
+# Files
+emulate*
+.swp
