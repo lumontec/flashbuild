@@ -11,7 +11,6 @@ SUPP_ARCH := 	linux/x86_64 \
 		linux/arm/v7 \
 		linux/arm/v6 
 
-
 # Host architecture
 HOST_ARCH := $(shell uname -m)
 # Support for cross build
@@ -38,7 +37,7 @@ endif
 
 # Final target
 .PHONY: all
-all: clean fs archive
+all: fs archive
 
 
 # Generate cpio archive
@@ -69,7 +68,7 @@ crossbuild:
 	$(info architecture ARCH = '$(ARCH)' was found)
 	@echo 'cross build:' $(CROSS_BUILD);
 	@echo 'CROSS building image for ARCH (EXPERIMENTAL)' $(ARCH);
-	@docker buildx build --platform=$(ARCH) -t flash_initramfs --no-cache --pull .;
+	@docker buildx build --platform=$(ARCH) -t flash_initramfs --no-cache .;
 
 # Build 
 .PHONY: build
@@ -77,7 +76,7 @@ build:
 	$(info ARCH = '$(ARCH)' does not exist in '$(SUPP_ARCH)' will build against HOST architecture)
 	@echo 'cross build:' $(CROSS_BUILD);
 	echo 'Building image for ARCH' $(HOST_ARCH); 
-	docker build -t  flash_initramfs --no-cache --pull .;
+	docker build -t  flash_initramfs --no-cache .;
 
 
 # Clean build files	
