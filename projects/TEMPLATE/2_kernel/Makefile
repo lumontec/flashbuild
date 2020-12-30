@@ -36,7 +36,7 @@ help:
 	@echo  '  clean		  - Remove most generated files but keep the sources'
 	@echo  '  distclean	  - Remove generated and sources'
 	@echo  'Partial targets:'
-	@echo  '  install ARCH=	  - Install compiled loadable kernel modules and kernel headers inside rootfs'
+	@echo  '  install 	  - Install compiled loadable kernel modules and kernel headers inside rootfs'
 	@echo  '  import ARCH=	  - Import all kernel modules and header binaries from ./src'
 	@echo  'Other generic targets:'
 	@echo  '  all ARCH=	  - Build all targets' 
@@ -45,8 +45,10 @@ help:
 setarch:
 # Set target architecture (ARCH if supported otherwise HOST arch)
 ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
+	$(info Importing for ARCH=$(ARCH))
 TARGET=$(ARCH)
 else
+	$(info No compatible ARCH found in arguments, importing for HOST_ARCH=$(HOST_ARCH))
 TARGET=linux/$(HOST_ARCH)
 endif
 
@@ -66,20 +68,20 @@ install:
 
 # Import headers modules 
 .PHONY: import 
-import: import_core_$(TARGET)
+import: setarch import_core_$(TARGET)
 	@echo 'Importing kernel modules from ./src'
-	$(MAKE) -C ./src modules_install INSTALL_MOD_PATH=../kmodule
+	$(MAKE) -C ./src modules_install INSTALL_MOD_PATH=../kmodules $(IGNORE_FAIL)
 	@echo 'Importing kernel modules from ./src'
-	$(MAKE) -C ./src headers_install INSTALL_HDR_PATH=../kheaders
+	$(MAKE) -C ./src headers_install INSTALL_HDR_PATH=../kheaders $(IGNORE_FAIL)
 
 # Intel 64 bit targets
-import_core_linux/amd64 import_core_linux/x86_64: setarch
+import_core_linux/amd64 import_core_linux/x86_64:
 	@echo 'importing amd64 binaries' 
 	@cp -rn ./src/arch/x86_64/boot/bzImage .
-	@cp -rn ./src/vmlinux .
+	@cp -rn ./src/vmlinux . 
 
 # Arm 64 bit targets
-import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6: setarch
+import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6:
 	@echo 'importing arm64 binaries' 
 	@cp -rn ./src/arch/arm64/boot/Image .
 	@cp -rn ./src/vmlinux .
