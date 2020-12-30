@@ -84,7 +84,7 @@ build:
 .PHONY: clean
 clean:
 	# Clean dirty folders
-	@rm -rf ./fs ./flash_initramfs.tar ./initramfs.cpio.gz;					
+	@rm -rf ./fs ./fs.tar ./initramfs.cpio.gz;					
 	# Remove previous container								
 	@docker container rm flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
 	# Remove previous image									
