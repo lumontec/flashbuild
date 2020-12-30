@@ -6,5 +6,5 @@ mount -t devtmpfs none /dev
 
 echo -e "\nBoot took $(cut -d' ' -f1 /proc/uptime) seconds\n"
  
-exec /sbin/init
+exec /lib/systemd/systemd
 
