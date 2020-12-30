@@ -28,6 +28,7 @@ SIL_STDE = 2>/dev/null
 IGNORE_FAIL = || true
 
 
+
 # Check if architecture is supported in case sets CROSS_BUILD
 ifneq ($(filter $(ARCH),$(SUPP_ARCH)),)
 CROSS_BUILD=crossbuild
@@ -36,68 +37,6 @@ CROSS_BUILD=build
 endif
 
 
-# Final target
-.PHONY: all
-all: clean fs archive
-
-
-# Generate cpio archive
-.PHONY: archive
-archive:
-	# Generate initramfs as cpio archive
-	@cd ./fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
-
-# Generate filesystem from container
-.PHONY: fs
-fs: docker
-	# Copy from container to fs directory
-	@mkdir -p ./fs
-	# Copy container filesystem in fs.tar
-	@docker export flash_initramfs > ./fs.tar
-	# Etracting container fs 
-	@tar -xvf ./fs.tar -C ./fs
-
-# docker depends on cross build 
-.PHONY: docker
-docker: $(CROSS_BUILD) 
-	@echo 'Creating container ..'
-	@docker create --name flash_initramfs flash_initramfs;
-
-# Cross build 
-.PHONY: crossbuild
-crossbuild:
-	$(info architecture ARCH = '$(ARCH)' was found)
-	@echo 'cross build:' $(CROSS_BUILD);
-	@echo 'CROSS building image for ARCH (EXPERIMENTAL)' $(ARCH);
-	@docker buildx build --platform=$(ARCH) -t flash_initramfs --no-cache --pull .;
-
-# Build 
-.PHONY: build
-build:
-	$(info ARCH = '$(ARCH)' does not exist in '$(SUPP_ARCH)' will build against HOST architecture)
-	@echo 'cross build:' $(CROSS_BUILD);
-	echo 'Building image for ARCH' $(HOST_ARCH); 
-	docker build -t  flash_initramfs --no-cache --pull .;
-
-
-# Clean build files	
-.PHONY: clean
-clean:
-	# Clean dirty folders
-	@rm -rf ./fs ./fs.tar ./initramfs.cpio.gz;					
-	# Remove previous container								
-	@docker container rm flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
-	# Remove previous image									
-	@docker rmi flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
-	# Remove eventual leftover dandling images						
-	@docker rmi -f $(shell docker images -f "dangling=true" -q) $(SIL_STDE) $(IGNORE_FAIL);
-
-# Distclean build files	
-.PHONY: distclean
-distclean: clean
-	# Clean all but these files / folders
-	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} + $(SIL_STDO);
-
 .PHONY: help
 help:
 	@echo  'Supported architectures: $(SUPP_ARCH)' 
@@ -105,7 +44,53 @@ help:
 	@echo  '  clean		  - Remove most generated files but keep the sources'
 	@echo  '  distclean	  - Remove generated and sources'
 	@echo  'Partial targets:'
-	@echo  '  docker ARCH=	  - Rebuild container image and instance'
-	@echo  '  fs		  - Export filesystem to fs folder'
+	@echo  '  install ARCH=	  - Install compiled loadable kernel modules and kernel headers inside rootfs'
+	@echo  '  import ARCH=	  - Import all kernel modules and header binaries from ./src'
 	@echo  'Other generic targets:'
 	@echo  '  all ARCH=	  - Build all targets' 
+
+
+# Final target
+.PHONY: all
+all: import install
+
+
+# Generate cpio archive
+.PHONY: 
+install:
+	@echo 'Install kmodule folder inside 3_rootfs/src folder'
+	@cp -rn ./kmodules ../3_initramfs/src
+	@echo 'Install kheaders folder inside 3_rootfs/src folder'
+	@cp -rn ./kheaders ../3_initramfs/src
+
+# Import headers modules 
+.PHONY: import 
+import: import_core_$(ARCH)
+	@echo 'Importing kernel modules from ./src'
+	$(MAKE) -C ./src modules_install INSTALL_MOD_PATH=../kmodule
+	@echo 'Importing kernel modules from ./src'
+	$(MAKE) -C ./src headers_install INSTALL_HDR_PATH=../kheaders
+
+# Intel 64 bit targets
+import_core_linux/amd64 import_core_linux/x86_64:
+	@echo 'importing amd64 binaries' 
+	@cp -rn ./src/arch/x86_64/boot/bzImage .
+	@cp -rn ./src/vmlinux .
+
+# Arm 64 bit targets
+import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6:
+	@echo 'importing arm64 binaries' 
+	@cp -rn ./src/arch/arm64/boot/Image .
+	@cp -rn ./src/vmlinux .
+
+# Clean build files	
+.PHONY: clean
+clean:
+	# Clean dirty folders
+	@rm -rf ./kmodules ./kheaders ./Image ./bzImage ./vmlinuz ./vmlinux config version;					
+
+# Distclean build files	
+.PHONY: distclean
+distclean: clean
+	# Clean all but these files / folders
+	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} + $(SIL_STDO);
