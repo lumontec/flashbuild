@@ -45,7 +45,7 @@ endif
 
 
 .PHONY: test_proj
-# Check if SRC is set
+# Check if PROJ is set
 test_proj: 
 	@if [ -d "$(PROJ)" ];						\
 	then								\
