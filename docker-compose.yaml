@@ -1,0 +1,757 @@
+version: "2.1"
+
+# Here we define build artifacts as named volumes
+volumes:
+  
+  # Includes kernel sources
+  kernel_src:
+    driver: local
+    driver_opts:
+      type: none
+      device: $PWD/2_kernel/src/
+      o: bind
+
+# Here we define the different steps for our build pipeline
+services:
+
+  # Builds the kernel artifacts
+  kernel_builder:
+    build: ./2_kernel/.
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    volumes:
+      - kernel_src:/usr/src
+
+
+  # Builds Initramfs 
+  initramfs_builder:
+    build: ./3_initramfs/.
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    volumes:
+      - kernel_src:/usr/src
+
+
+
+
+
+
+
+#networks:
+#  lbnet:
+#    driver: bridge
+#    ipam:
+#      config:
+#        - subnet: 172.18.0.0/16
+#          gateway: 172.18.0.1
+#
+#
+#services:
+#  api:
+#    extends:
+#      file: ./common.yml
+#      service: component
+#    image: balena/open-balena-api:${OPENBALENA_API_VERSION_TAG:-master}
+#    depends_on:
+#      - s3
+#      - redis
+#      - pgprimary
+#    environment:
+#      API_VPN_SERVICE_API_KEY: ${OPENBALENA_API_VPN_SERVICE_API_KEY}
+#      BALENA_ROOT_CA: ${OPENBALENA_ROOT_CA}
+#      COOKIE_SESSION_SECRET: ${OPENBALENA_COOKIE_SESSION_SECRET}
+#      DB_HOST: pgprimary
+#      DB_PASSWORD: password
+#      DB_PORT: 5432
+#      DB_USER: postgres
+#      DELTA_HOST: delta.${OPENBALENA_HOST_NAME}
+#      DEVICE_CONFIG_OPENVPN_CA: ${OPENBALENA_VPN_CA_CHAIN}
+#      DEVICE_CONFIG_SSH_AUTHORIZED_KEYS: ${OPENBALENA_SSH_AUTHORIZED_KEYS}
+#      HOST: api.${OPENBALENA_HOST_NAME}
+#      IMAGE_MAKER_URL: img.${OPENBALENA_HOST_NAME}
+#      IMAGE_STORAGE_BUCKET: resin-production-img-cloudformation
+#      IMAGE_STORAGE_PREFIX: resinos
+#      IMAGE_STORAGE_ENDPOINT: s3.amazonaws.com
+#      JSON_WEB_TOKEN_EXPIRY_MINUTES: 10080
+#      JSON_WEB_TOKEN_SECRET: ${OPENBALENA_JWT_SECRET}
+#      MIXPANEL_TOKEN: __unused__
+#      PRODUCTION_MODE: "${OPENBALENA_PRODUCTION_MODE}"
+#      PUBNUB_PUBLISH_KEY: __unused__
+#      PUBNUB_SUBSCRIBE_KEY: __unused__
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+#      REGISTRY2_HOST: registry.${OPENBALENA_HOST_NAME}
+#      REGISTRY_HOST: registry.${OPENBALENA_HOST_NAME}
+#      SENTRY_DSN:
+#      TOKEN_AUTH_BUILDER_TOKEN: ${OPENBALENA_TOKEN_AUTH_BUILDER_TOKEN}
+#      TOKEN_AUTH_CERT_ISSUER: api.${OPENBALENA_HOST_NAME}
+#      TOKEN_AUTH_CERT_KEY: ${OPENBALENA_TOKEN_AUTH_KEY}
+#      TOKEN_AUTH_CERT_KID: ${OPENBALENA_TOKEN_AUTH_KID}
+#      TOKEN_AUTH_CERT_PUB: ${OPENBALENA_TOKEN_AUTH_PUB}
+#      TOKEN_AUTH_JWT_ALGO: "ES256"
+#      VPN_HOST: vpn.${OPENBALENA_HOST_NAME}
+#      VPN_PORT: 443
+#      VPN_SERVICE_API_KEY: ${OPENBALENA_VPN_SERVICE_API_KEY}
+#      SUPERUSER_EMAIL: ${OPENBALENA_SUPERUSER_EMAIL}
+#      SUPERUSER_PASSWORD: ${OPENBALENA_SUPERUSER_PASSWORD}
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.2
+#
+#  registry:
+#    extends:
+#      file: ./common.yml
+#      service: component
+#    image: balena/open-balena-registry:${OPENBALENA_REGISTRY_VERSION_TAG:-master}
+#    depends_on:
+#      - s3
+#      - redis
+#    volumes:
+#      - registry:/data
+#    environment:
+#      API_TOKENAUTH_CRT: ${OPENBALENA_TOKEN_AUTH_PUB}
+#      BALENA_REGISTRY2_HOST: registry.${OPENBALENA_HOST_NAME}
+#      BALENA_ROOT_CA: ${OPENBALENA_ROOT_CA}
+#      BALENA_TOKEN_AUTH_ISSUER: api.${OPENBALENA_HOST_NAME}
+#      BALENA_TOKEN_AUTH_REALM: https://api.${OPENBALENA_HOST_NAME}/auth/v1/token
+#      COMMON_REGION:
+#      REGISTRY2_CACHE_ENABLED: "false"
+#      REGISTRY2_CACHE_ADDR: 127.0.0.1:6379
+#      REGISTRY2_CACHE_DB: 0
+#      REGISTRY2_CACHE_MAXMEMORY_MB: 1024 # megabytes
+#      REGISTRY2_CACHE_MAXMEMORY_POLICY: allkeys-lru
+#      REGISTRY2_S3_BUCKET:
+#      REGISTRY2_S3_KEY:
+#      REGISTRY2_S3_SECRET:
+#      REGISTRY2_SECRETKEY: ${OPENBALENA_REGISTRY_SECRET_KEY}
+#      REGISTRY2_STORAGEPATH: /data
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.3
+#
+#
+#  vpn:
+#    extends:
+#      file: ./common.yml
+#      service: component
+#    image: balena/open-balena-vpn:${OPENBALENA_VPN_VERSION_TAG:-master}
+#    depends_on:
+#      - api
+#    cap_add:
+#      - NET_ADMIN
+#    environment:
+#      API_SERVICE_API_KEY: ${OPENBALENA_API_VPN_SERVICE_API_KEY}
+#      BALENA_API_HOST: api.${OPENBALENA_HOST_NAME}
+#      BALENA_ROOT_CA: ${OPENBALENA_ROOT_CA}
+#      BALENA_VPN_PORT: 443
+#      PRODUCTION_MODE: "${OPENBALENA_PRODUCTION_MODE}"
+#      RESIN_VPN_GATEWAY: 10.2.0.1
+#      SENTRY_DSN:
+#      VPN_HAPROXY_USEPROXYPROTOCOL: "true"
+#      VPN_OPENVPN_CA_CRT: ${OPENBALENA_VPN_CA}
+#      VPN_OPENVPN_SERVER_CRT: ${OPENBALENA_VPN_SERVER_CRT}
+#      VPN_OPENVPN_SERVER_DH: ${OPENBALENA_VPN_SERVER_DH}
+#      VPN_OPENVPN_SERVER_KEY: ${OPENBALENA_VPN_SERVER_KEY}
+#      VPN_SERVICE_API_KEY: ${OPENBALENA_VPN_SERVICE_API_KEY}
+#    mem_limit: 400m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.1
+#
+#
+#  s3:
+#    extends:
+#      file: ./common.yml
+#      service: component
+#    image: balena/open-balena-s3:${OPENBALENA_S3_VERSION_TAG:-master}
+#    volumes:
+#      - s3:/export
+#    environment:
+#      S3_MINIO_ACCESS_KEY: abcdef1234
+#      S3_MINIO_SECRET_KEY: "1234567890"
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.5
+#
+#
+#  redis:
+#    extends:
+#      file: ./common.yml
+#      service: system
+#    image: redis:alpine
+#    volumes:
+#      - redis:/data
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.6
+#
+#
+#  haproxy:
+#    extends:
+#      file: ./common.yml
+#      service: system
+#    image: ${DEPLOY_REG_HOST}/logbot/cloud/lbob_haproxy:${LBOPHAPROXY_VERSION_TAG}
+#    depends_on:
+#      - api
+#      - cert-provider
+#      - s3
+#      - redis
+#      - registry
+#      - vpn
+#      - gatekeeper
+#      - pgprimary
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#      - "3128:3128"
+#    expose:
+#      - "222"
+#      - "5432"
+#      - "6379"
+#    networks:
+#      default:
+#        aliases:
+#          - api.${OPENBALENA_HOST_NAME}
+#          - registry.${OPENBALENA_HOST_NAME}
+#          - vpn.${OPENBALENA_HOST_NAME}
+#          - db.${OPENBALENA_HOST_NAME}
+#          - s3.${OPENBALENA_HOST_NAME}
+#          - redis.${OPENBALENA_HOST_NAME}
+#          - devices.${OPENBALENA_HOST_NAME}
+#          - platform.${OPENBALENA_HOST_NAME}
+#          - iam.${OPENBALENA_HOST_NAME}
+#          - www.${OPENBALENA_HOST_NAME}
+#    environment:
+#      BALENA_HAPROXY_CRT: ${OPENBALENA_ROOT_CRT}
+#      BALENA_HAPROXY_KEY: ${OPENBALENA_ROOT_KEY}
+#      BALENA_ROOT_CA: ${OPENBALENA_ROOT_CA}
+#      HAPROXY_HOSTNAME: ${OPENBALENA_HOST_NAME}
+#      HAPROXY_VPNPROXY_AUTH: cm9vdDpMM2lvcmllMFJZYnVVR3lHQXRYYUtidm15ZmQ1WFFScg==
+#    volumes:
+#      - ../config/pemcert:/certs:ro
+#      - ../lbob_haproxyconf/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.1.1
+#
+#
+#  cert-provider:
+#    extends:
+#      file: ./common.yml
+#      service: system
+#    image: ${DEPLOY_REG_HOST}/logbot/cloud/lbob_cert-provider:${LBOBCERTPROVIDER_VERSION_TAG}
+#    volumes:
+#      - ../config/pemcert:/pemcert
+#      - cert-provider:/usr/src/app/certs
+#    environment:
+#      ACTIVE: ${OPENBALENA_ACME_CERT_ENABLED}
+#      DOMAINS: "api.${OPENBALENA_HOST_NAME},registry.${OPENBALENA_HOST_NAME},s3.${OPENBALENA_HOST_NAME},vpn.${OPENBALENA_HOST_NAME},devices.${OPENBALENA_HOST_NAME},platform.${OPENBALENA_HOST_NAME},iam.${OPENBALENA_HOST_NAME},www.${OPENBALENA_HOST_NAME}"
+#      OUTPUT_PEM: /pemcert/open-balena.pem
+#      RETRIES: 20
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.4.4
+#
+#
+#  lbcore:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: lbcore
+#    image: ${DEPLOY_REG_HOST}/logbot/cloud/lbcore:${LBCORE_VERSION_TAG}
+#    links:
+#      - grafana
+#      - keycloak
+#      - pgprimary
+#    expose:
+#      - "9090"
+#    ports:
+#      - "9090:9090"
+#    environment:
+#      OPENBALENA_API_URL: "api"
+#      OPENBALENA_API_PROTO: "http:"
+#      OPENBALENA_API_PORT: "80"
+#      OPENBALENA_API_TOKEN: "1uQUdviIC2gFvac87OaMBQTXvd6bhoWY"
+#      KAFKA_ENABLED: "true"
+#      KAFKA_ADD_PORT: "kafka:9092"
+#      KAFKA_CLIENT_ID: "kafka-admin"
+#      DATABASE_HOST: "pgprimary"
+#      DATABASE_PORT: 5432
+#      DATABASE_USER: "postgres"
+#      DATABASE_PASS: "password"
+#      DATABASE_NAME: "lbcoredb"
+#      KEYCLOAK_ENABLED: "true"
+#      KEYCLOAK_PROTO: "http://"
+#      KEYCLOAK_HOST: "keycloak"
+#      KEYCLOAK_PORT: "8080"
+#      KEYCLOAK_USER: "admin"
+#      KEYCLOAK_PASS: "admin"
+#      KEYCLOAK_GRANT_TYPE: "password"
+#      KEYCLOAK_REALM: "master"
+#      KEYCLOAK_CLIENTID: "admin-cli"
+#      KEYCLOAK_AUTH_TIMEOUT: 60000
+#      GRAFANA_API_HOST: "grafana"
+#      GRAFANA_API_PROTO: "http:"
+#      GRAFANA_API_PORT: "3000"
+#      GRAFANA_API_ADMIN: "admin"
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.3.1
+#
+#
+#  grafana:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: grafana
+#    image:  ${DEPLOY_REG_HOST}/logbot/cloud/lbgrafana:${LBGRAFANA_VERSION_TAG}
+#    expose:
+#      - "3000"
+#    ports:
+#      - "3000:3000"
+#    environment:
+#      HOSTNAME: platform.${OPENBALENA_HOST_NAME}
+#      #GF_INSTALL_PLUGINS: grafana-worldmap-panel,grafana-piechart-panel,satellogic-3d-globe-panel,ryantxu-ajax-panel,novalabs-annotations-panel,yesoreyeram-boomtable-panel,briangann-gauge-panel,petrslavotinek-carpetplot-panel,agenty-flowcharting-panel,citilogics-geoloop-panel,pierosavi-imageit-panel,michaeldmoore-multistat-panel,natel-plotly-panel,bessler-pictureit-panel,scadavis-synoptic-panel,blackmirror1-singlestat-math-panel,flant-statusmap-panel,marcuscalidus-svg-panel,snuids-trafficlights-panel
+#      GF_INSTALL_PLUGINS: grafana-worldmap-panel,grafana-piechart-panel,michaeldmoore-multistat-panel,flant-statusmap-panel,marcuscalidus-svg-panel,snuids-trafficlights-panel
+#    volumes:
+#      - ../lbgrafanaconf/grafana-datasources:/etc/grafana/provisioning/datasources
+#      - ../lbgrafanaconf/grafana.ini:/etc/grafana/grafana.ini
+#    links:
+#      - metrictank
+#      - pgprimary
+#    networks:
+#      - postgres-net
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.6
+#
+#
+#  keycloak:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    image:  ${DEPLOY_REG_HOST}/logbot/cloud/lbkeycloak:${LBKEYCLOAK_VERSION_TAG}
+#    hostname: keycloak
+#    environment:
+#      DB_VENDOR: POSTGRES
+#      DB_ADDR: pgprimary
+#      DB_DATABASE: keycloakdb
+#      DB_USER: postgres
+#      DB_SCHEMA: public
+#      DB_PASSWORD: password
+#      KEYCLOAK_USER: admin
+#      KEYCLOAK_PASSWORD: admin
+#      HTTP_PROTOCOL: https
+#      KEYCLOAK_HOSTNAME: iam.${OPENBALENA_HOST_NAME}
+#      PROXY_ADDRESS_FORWARDING: "true"
+#        # Uncomment the line below if you want to specify JDBC parameters. The parameter below is just an example, and it shouldn't be used in production without knowledge. It is highly recommended that you read the PostgreSQL JDBC driver documentation in order to use it.
+#        #JDBC_PARAMS: "ssl=true"
+#    expose:
+#      - "8080"
+#    depends_on:
+#      - pgprimary
+#    links:
+#      - grafana
+#      - pgprimary
+#    networks:
+#      - postgres-net
+#    mem_limit: 700m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.2
+#
+#
+#  gatekeeper:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: gatekeeper
+#    image:  ${DEPLOY_REG_HOST}/logbot/cloud/lbgatekeeper:${LBGATEKEEPER_VERSION_TAG}
+#    expose:
+#      - "4444"
+#      - "40000"
+##    # necessario per debuggare con delve
+##    security_opt:
+##      - seccomp:unconfined
+##      - apparmor:unconfined
+##    privileged: true
+##    cap_add:
+##      - SYS_PTRACE
+#    command:
+#      - "--verbose"
+#      - "--secure-cookie=false"
+#      - "--enable-logging=true"
+#      - "--config=/gatekeeper-config.yml"
+#    links:
+#     - keycloak
+#     - grafana
+#     - haproxyint
+#    volumes:
+#     - "../lbgatekeeperconf/gatekeeper-config.yml:/gatekeeper-config.yml"
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.1
+#
+#
+#  lbproxy:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: lbroxy
+#    image:  ${DEPLOY_REG_HOST}/logbot/cloud/lbproxy:${LBPROXY_VERSION_TAG}
+#    expose:
+#      - "80"
+#    environment:
+#      VPN_PROXY_HOST: devices.${OPENBALENA_HOST_NAME}
+#      VPN_PROXY_PORT: 3128
+#      VPN_PROXY_TIMEOUT: 20000
+#      COOKIE_MAXAGE: 100000
+#    links:
+#     - vpn
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.4
+#
+#
+#  metrictank:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: metrictank
+#    image: grafana/metrictank:v0.12.0-60-gb18aa05
+#    expose:
+#     - "2003"
+#     - "6060"
+#    volumes:
+#      # configs
+#      - ../metrictankconf/metrictank-docker.ini:/etc/metrictank/metrictank.ini
+#      - ../metrictankconf/index-rules.conf:/etc/metrictank/index-rules.conf
+#      # retention policies
+#      - ../metrictankconf/storage-schemas.conf:/etc/metrictank/storage-schemas.conf
+#      - ../metrictankconf/storage-aggregation.conf:/etc/metrictank/storage-aggregation.conf
+#      # if initialization is needed load these schemas
+#      - ../metrictankconf/schema-store-scylladb.toml:/etc/metrictank/schema-store-cassandra.toml
+#      - ../metrictankconf/schema-idx-scylladb.toml:/etc/metrictank/schema-idx-cassandra.toml
+#    environment:
+#      WAIT_HOSTS: cassandra:9042,kafka:9092
+#      WAIT_TIMEOUT: 60
+#      MT_HTTP_MULTI_TENANT: "true"
+#      MT_MEMORY_IDX_TAG_SUPPORT: "true"
+#    links:
+#     - cassandra
+#     - kafka
+#    mem_limit: 2000m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.3.2
+#
+#
+#  zookeeper:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    image: zookeeper:3.5.5
+#    restart: always
+#    hostname: zookeeper
+#    ports:
+#      - 2181:2181
+#    environment:
+#      ZOO_MY_ID: 1
+#      #        ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
+#    volumes:
+#      - zookeeerlogs:/logs
+#      - zookeeerdata:/data
+#      - zookeeerdatalog:/datalog
+#    mem_limit: 1000m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.7
+#
+#
+#  kafka:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: kafka
+#    image: confluentinc/cp-kafka:5.1.3
+#    depends_on:
+#      - zookeeper
+#    ports:
+#      - 9092:9092
+#    environment:
+#      KAFKA_BROKER_ID: 1
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://upstream.${OPENBALENA_HOST_NAME}:9092
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+#      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+#      JMX_PORT: 9997
+#      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9997
+#      KAFKA_LOG_RETENTION_HOURS: -1
+#      #KAFKA_LOG_RETENTION_BYTES: 10000000
+#      KAFKA_LOG_SEGMENT_BYTES: 1000000
+#      #KAFKA_LOG_RETENTION_BYTES: 1073741824
+#      #KAFKA_LOG_SEGMENT_BYTES: 1073741824
+#    volumes:
+#      - kafkadata:/var/lib/kafka/data
+#    mem_limit: 2000m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.1.2
+#
+#
+#  graphite:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: graphite
+#    image: raintank/graphite-mt:latest
+#    expose:
+#      - 80
+#    environment:
+#      GRAPHITE_CLUSTER_SERVERS: metrictank:6060
+#      #GRAPHITE_STATSD_HOST: statsdaemon
+#      WSGI_PROCESSES: 4
+#      WSGI_THREADS: 25
+#    mem_limit: 800m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.3.3
+#
+#
+#  lbfrontend:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: lbfrontend
+#    image:  ${DEPLOY_REG_HOST}/logbot/cloud/lbfrontend:${LBFRONTEND_VERSION_TAG}
+#    expose:
+#      - "8000"
+#    links:
+#      - lbcore
+#    environment:
+#      KEYCLOAK_EXT_URL: https://iam.${OPENBALENA_HOST_NAME}
+#      PLATFORM_EXT_URL: https://platform.${OPENBALENA_HOST_NAME}
+#      DEVICES_EXT_URL: https://devices.${OPENBALENA_HOST_NAME}
+#      API_URL: http://lbcore:9090
+#      GRAFANA_EXT_URL: https://platform.${OPENBALENA_HOST_NAME}/panel
+#      FORCE_HTTPS: 1
+#      APP_NAME: lbfrontend
+#      APP_ENV: production
+#      APP_KEY: base64:0Y/2fB1u+0bvSO0RebxyR92VSgTOkBowt0UVBkFrw+w=
+#      #APP_DEBUG: "true"
+#      APP_LOG_LEVEL: debug
+#      APP_URL: https://platform.${OPENBALENA_HOST_NAME}
+#      DB_CONNECTION: mysql
+#      DB_HOST: 127.0.0.1
+#      DB_PORT: 3306
+#      DB_DATABASE: homestead
+#      DB_USERNAME: homestead
+#      DB_PASSWORD: secret
+#      BROADCAST_DRIVER: log
+#      CACHE_DRIVER: file
+#      SESSION_DRIVER: file
+#      SESSION_LIFETIME: 120
+#      QUEUE_DRIVER: sync
+#      REDIS_HOST: 127.0.0.1
+#      REDIS_PASSWORD: null
+#      REDIS_PORT: 6379
+#      MAIL_DRIVER: smtp
+#      MAIL_HOST: smtp.mailtrap.io
+#      MAIL_PORT: 2525
+#      MAIL_USERNAME: null
+#      MAIL_PASSWORD: null
+#      MAIL_ENCRYPTION: null
+#      PUSHER_APP_ID:
+#      PUSHER_APP_KEY:
+#      PUSHER_APP_SECRET:
+#      PUSHER_APP_CLUSTER: mt1
+#    mem_limit: 500m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.5
+#
+#
+#  haproxyint:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    image: haproxy:1.9-alpine
+#    hostname: haproxyint
+#    expose:
+#      - 80
+#    environment:
+#      - MAIN_HOSTNAME=${OPENBALENA_HOST_NAME}
+#    volumes:
+#      - ../haproxyintconf/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+#    links:
+#      - grafana
+#      - lbfrontend
+#      - lbcore
+#      - metrictank
+#      - lbproxy
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.2.3
+#
+#
+#
+#### DATABASES ###
+#
+#
+#  pgprimary:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: pgprimary
+#    image: 'bitnami/postgresql:11.3.0-r42'
+#    expose:
+#      - '5432'
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - 'postgresql_master_data:/bitnami/postgresql:rw'
+#      - ../postgresconf/setup/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+#    environment:
+#      - POSTGRESQL_REPLICATION_MODE=master
+#      - POSTGRESQL_REPLICATION_USER=repl_user
+#      - POSTGRESQL_REPLICATION_PASSWORD=873b4ey748de78de
+#      - POSTGRESQL_PASSWORD=password
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.5.1
+#
+#
+#  cassandra:
+#    extends:
+#      file: ./common.yml
+#      service: component_unp
+#    hostname: cassandra
+#    image: scylladb/scylla:3.0.8
+#    expose:
+#      - "9042"
+#      - "7000"
+#      - "7001"
+#      - "7199"
+#      - "10000"
+#      - "9180"
+#      - "9100"
+#      - "9160"
+#    ports:
+#      - "9042:9042"
+#      - "7000:7000"
+#      - "7001:7001"
+#      - "7199:7199"
+#      - "10000:10000"
+#      - "9180:9180"
+#      - "9100:9100"
+#      - "9160:9160"
+#    command: --seeds=172.18.5.2  --smp 4 --memory 2000M --overprovisioned 1 --api-address 0.0.0.0 --developer-mode 1
+#    volumes:
+#      - ../scylla/scylla.yaml:/etc/scylla/scylla.yaml
+#      - ../scylla/cassandra-rackdc.properties.dc1:/etc/scylla/cassandra-rackdc.properties
+#      - cassandradata:/var/lib/scylla/data
+#      - cassandracommit:/var/lib/scylla/commitlog
+#    mem_limit: 2500m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.5.2
+#
+#
+#
+#### MONITORING ###
+#
+#
+#  kafka_manager:
+#    extends:
+#      file: ./common.yml
+#      service: monitor
+#    image: hlebalbau/kafka-manager:stable
+#    ports:
+#      - "9001:9000"
+#    environment:
+#      ZK_HOSTS: "zookeeper:2181"
+#      APPLICATION_SECRET: "random-secret"
+#    command: -Dpidfile.path=/dev/null
+#    links:
+#      - zookeeper
+#    mem_limit: 400m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.6.1
+#
+#
+#  statsdaemon:
+#    extends:
+#      file: ./common.yml
+#      service: monitor
+#    hostname: statsdaemon
+#    image: raintank/statsdaemon
+#    ports:
+#     - "8125:8125/udp"
+#    volumes:
+#     - "../cfgstatsdaemon/statsdaemon.ini:/etc/statsdaemon.ini"
+#    links:
+#      - metrictank
+#    mem_limit: 100m
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.6.2
+#
+#
+#  cadvisor:
+#    extends:
+#      file: ./common.yml
+#      service: monitor
+#    image: google/cadvisor:v0.29.0
+#    links:
+#      - statsdaemon
+#    command: -storage_driver=statsd -storage_driver_host=statsdaemon:8125 --allow_dynamic_housekeeping=true --storage_duration=2m0s
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - /:/rootfs:ro
+#      - /var/run:/var/run:rw
+#      - /sys:/sys:ro
+#      - /var/lib/docker/:/var/lib/docker:ro
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.6.3
+#
+#
+#  adminer:
+#    extends:
+#      file: ./common.yml
+#      service: monitor
+#    image: adminer
+#    ports:
+#      - 8081:8080
+#    links:
+#      - pgprimary
+#    networks:
+#      lbnet:
+#        ipv4_address: 172.18.6.4
+#
+#
+#
+#### VPN ###
+#
+#
+#  openvpn:
+#    extends:
+#      file: ./common.yml
+#      service: component
+#    cap_add:
+#     - NET_ADMIN
+#    image: jfelten/openvpn-docker
+#    hostname: openvpn
+#    ports:
+#     - "1194:1194/udp"
+#    command: openvpn  --config /etc/openvpn/openvpn.conf --secret /etc/openvpn/static.key
+#    volumes:
+#     - ../openvpn-data-lb:/etc/openvpn
+##    networks:
+##      lbnet:
+##        ipv4_address: 172.18.1.3
+#    network_mode: "host"
