@@ -64,7 +64,7 @@ help:
 
 # Final target
 .PHONY: all
-all: clean docker fs archive
+all: clean_docker docker fs archive
 
 
 # Generate cpio archive
@@ -137,20 +137,24 @@ import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6: setar
 	@cp -rn ./kernel/arch/arm64/boot/Image .
 	@cp -rn ./kernel/vmlinux .
 
-
 # Clean build files	
 .PHONY: clean
-clean:
+clean: clean_docker
 	# Clean dirty folders initramfs
 	@rm -rf ./fs ./fs.tar ./initramfs.cpio.gz;					
 	# Clean dirty folders kernel
 	@rm -rf ./kmodules ./kheaders ./Image ./bzImage ./vmlinuz ./vmlinux config version;					
+
+# Clean docker
+.PHONY: clean_docker
+clean_docker:
 	# Remove previous container								
 	@docker container rm flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
 	# Remove previous image									
 	@docker rmi flash_initramfs -f $(SIL_STDE) $(IGNORE_FAIL); 
 	# Remove eventual leftover dandling images						
 	@docker rmi -f $(shell docker images -f "dangling=true" -q) $(SIL_STDE) $(IGNORE_FAIL);
+
 
 # Distclean build files	
 .PHONY: distclean
