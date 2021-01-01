@@ -25,11 +25,6 @@ help:
 	@echo  '  save DEST=	  - Saves current workspace state of SOURCES in your DEST path'
 	@echo  '  load PROJ=	  - Load saved sources inside current workspace' 
 	@echo  '  init		  - Initialize a clean workspace' 
-	@echo  'Modules targets:'
-	@echo  '  bootloader	  - Access bootloader make commands'
-	@echo  '  kernel	  - Access kernel make commands'
-	@echo  '  initramfs	  - Access initramfs commands'
-	@echo  '  rootfs	  - Access rootfs commands'
 	@echo
 
 .PHONY: test_dest
@@ -63,32 +58,15 @@ confirm:
 .PHONY: 
 save: test_dest
 	# cleaning
+	@echo 'create project directory under DEST=$(DEST)';
+	@mkdir -p $(DEST);
 	@echo 'cleaning previous state for DEST=$(DEST)'
-	@rm -rf $(DEST)/1_bootloader $(DEST)/2_kernel $(DEST)/3_initramfs $(DEST)/4_rootfs
-	# bootloader 
-	@echo 'create 1_bootloader directory under DEST=$(DEST)';
-	@mkdir -p $(DEST)/1_bootloader;
-	@echo 'saving 1_bootloader sources to DEST=$(DEST)/1_bootloader';
-	@#cp `git ls-files --cached --others --exclude-standard ./1_bootloader` $(DEST)/1_bootloader;
-	# kernel 
-	@echo 'create 2_kernel directory under DEST=$(DEST)';
-	@mkdir -p $(DEST)/2_kernel;
-	@echo 'saving 2_kernel sources to DEST=$(DEST)/2_kernel';
-	@#cp `git ls-files --cached --others --exclude-standard ./2_kernel` $(DEST)/2_kernel;
-	# initramfs 
-	@echo 'create 3_initramfs directory under DEST=$(DEST)';
-	@mkdir -p $(DEST)/3_initramfs;
-	@echo 'saving 3_initramfs sources to DEST=$(DEST)/3_initramfs';
-	@#cp `git ls-files --cached --others --exclude-standard ./3_initramfs` $(DEST)/3_initramfs;
-	@cp -rn ./3_initramfs/Dockerfile $(DEST)/3_initramfs;
-	@cp -rn ./3_initramfs/src $(DEST)/3_initramfs;
-	# rootfs 
-	@echo 'create 4_rootfs directory under DEST=$(DEST)';
-	@mkdir -p $(DEST)/4_rootfs;
-	@echo 'saving 4_rootfs sources to DEST=$(DEST)/4_rootfs';
-	@#cp `git ls-files --cached --others --exclude-standard ./4_rootfs` $(DEST)/4_rootfs;
-	@cp -rn ./4_rootfs/Dockerfile $(DEST)/4_rootfs;
-	@cp -rn ./4_rootfs/src $(DEST)/4_rootfs;
+	@rm -rf $(DEST)/*;
+	# saving sources
+	@echo 'saving sources to DEST=$(DEST)';
+	@cp -rn ./workspace $(DEST);
+	@cp -rn ./workspace/.gitignore $(DEST)/.gitignore;
+	@cp -rn ./workspace/.dockerignore $(DEST)/.dockerignore;
 	# emulator 
 	@echo 'saving emulation scripts under DEST=$(DEST)';
 	@cp -rn emulate* $(DEST);
@@ -98,30 +76,27 @@ save: test_dest
 load: test_proj confirm
 	# cleaning
 	@echo 'cleaning workspace'
-	@rm -rf ./1_bootloader ./2_kernel ./3_initramfs ./4_rootfs emulate*
+	@rm -rf ./workspace
 	# loading 
 	@echo 'loading project from $(PROJ)'
-	@cp -rn $(PROJ)/* .
+	@cp -rn $(PROJ) ./workspace
 	# inject template 
-	@echo 'injecting Makefiles $(PROJ)'
-	@cp -rn ./projects/TEMPLATE/1_bootloader/* ./1_bootloader/ 
-	@cp -rn ./projects/TEMPLATE/2_kernel/* ./2_kernel/ 
-	@cp -rn ./projects/TEMPLATE/3_initramfs/* ./3_initramfs/ 
-	@cp -rn ./projects/TEMPLATE/4_rootfs/* ./4_rootfs/ 
+	@echo 'injecting Makefile $(PROJ)'
+	@cp -rn ./flash/template/Makefile ./workspace/Makefile
 
 # init 
 .PHONY: 
 init: confirm
 	# cleaning
 	@echo 'cleaning workspace'
-	@rm -rf ./1_bootloader ./2_kernel ./3_initramfs ./4_rootfs emulate*
+	@rm -rf ./workspace;
 	# loading 
-	@echo 'loading project from ./projects/TEMPLATE'
-	@cp -rn ./projects/TEMPLATE/* .
+	@echo 'loading project from ./template'
+	@cp -rn ./template ./workspace
 
 # wipe 
 .PHONY: 
 wipe: confirm
 	# cleaning
 	@echo 'cleaning workspace'
-	@rm -rf ./1_bootloader ./2_kernel ./3_initramfs ./4_rootfs emulate*
+	@rm -rf ./workspace
