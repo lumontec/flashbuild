@@ -15,4 +15,4 @@ RUN  apt install -y systemd udev
 RUN echo "root:root" | chpasswd
 
 # Add init script
-ADD ./src/init init
+ADD ./initramfs/init init

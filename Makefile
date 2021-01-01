@@ -37,6 +37,17 @@ else
 endif
 
 
+# Check if NAME is set
+test_name: 
+ifeq ($(NAME),)
+	$(error 'NAME is not set for project save')
+else
+	$(info 'will save to NAME=$(NAME)')
+endif
+
+
+
+
 .PHONY: test_proj
 # Check if PROJ is set
 test_proj: 
@@ -56,20 +67,20 @@ confirm:
 
 # save 
 .PHONY: 
-save: test_dest
+save: test_dest test_name
 	# cleaning
-	@echo 'create project directory under DEST=$(DEST)';
-	@mkdir -p $(DEST);
-	@echo 'cleaning previous state for DEST=$(DEST)'
-	@rm -rf $(DEST)/*;
+	@echo 'create project directory with NAME=$(NAME) under DEST=$(DEST)';
+	@mkdir -p $(DEST)/$(NAME);
+	@echo 'cleaning previous state for DEST=$(DEST)/$(NAME)'
+	@rm -rf $(DEST)/$(NAME);
 	# saving sources
-	@echo 'saving sources to DEST=$(DEST)';
-	@cp -rn ./workspace $(DEST);
-	@cp -rn ./workspace/.gitignore $(DEST)/.gitignore;
-	@cp -rn ./workspace/.dockerignore $(DEST)/.dockerignore;
+	@echo 'saving sources to DEST=$(DEST)/$(NAME)';
+	@cp -rn ./workspace $(DEST)/$(NAME) $(IGNORE_FAIL);
+	@cp -rn ./workspace/.gitignore $(DEST)/$(NAME)/.gitignore $(IGNORE_FAIL);
+	@cp -rn ./workspace/.dockerignore $(DEST)/$(NAME)/.dockerignore $(IGNORE_FAIL);
 	# emulator 
-	@echo 'saving emulation scripts under DEST=$(DEST)';
-	@cp -rn emulate* $(DEST);
+	@echo 'saving emulation scripts under DEST=$(DEST)/$(NAME)';
+	@cp -rn emulate* $(DEST)/$(NAME);
 
 # load 
 .PHONY: 
