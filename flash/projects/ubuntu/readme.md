@@ -12,7 +12,7 @@ We use a simple Dockerfile and an init script to mount an initramfs after the ke
 - add an init script to be called by the kernel
 - thats it !
 
-Dockerfile:
+```Dockerfile
 # Base image ---------------------------
 # 
 # We download a basic ubuntu image to copy
