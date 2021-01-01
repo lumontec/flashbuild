@@ -1,8 +1,5 @@
 # Ignore top level folders 
-/1_bootloader
-/2_kernel
-/3_initramfs
-/4_rootfs
+/workspace
 
 # Files
 emulate*

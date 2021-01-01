@@ -21,8 +21,6 @@ help:
 	@echo  'Single modules have to be compiled independently, there is NO single make all command here at the top level'
 	@echo  'you can find several plug and play examples inside the ./projects directory, have fun !'
 	@echo  'Project targets:'
-	@echo  '  clean		  - Remove most generated files but keep the sources'
-	@echo  '  distclean	  - Remove generated and sources'
 	@echo  '  wipe		  - Wipe current workspace' 
 	@echo  '  save DEST=	  - Saves current workspace state of SOURCES in your DEST path'
 	@echo  '  load PROJ=	  - Load saved sources inside current workspace' 
