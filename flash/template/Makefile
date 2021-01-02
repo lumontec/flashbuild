@@ -124,6 +124,10 @@ import_kernel: import_core_$(TARGET)
 	$(MAKE) -C ./kernel modules_install INSTALL_MOD_PATH=../kmodules
 	@echo 'Importing kernel modules from ./kernel'
 	$(MAKE) -C ./kernel headers_install INSTALL_HDR_PATH=../kheaders
+	@echo 'Importing kernel_version'
+	$(MAKE) -s -C ./kernel kernelrelease > kernel_version;
+	@echo 'Importing kernel_config'
+	@cp ./kernel/.config ./kernel_config
 
 # Intel 64 bit targets
 import_core_linux/amd64 import_core_linux/x86_64: setarch
@@ -161,4 +165,12 @@ clean_docker:
 distclean: clean
 	# Clean all but these files / folders
 	@find . ! -name "readme.md" ! -name "Makefile" ! -name ".gitignore" ! -name "." -exec rm -rf {} + $(SIL_STDO);
+
+# Custom user command
+.PHONY: custom
+custom:
+	# Execute custom.sh 
+	@./custom.sh
+
+
 
