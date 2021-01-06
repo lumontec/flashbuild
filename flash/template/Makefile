@@ -121,25 +121,23 @@ build:
 .PHONY: import_kernel
 import_kernel: import_core_$(TARGET)
 	@echo 'Importing kernel modules from ./kernel'
-	$(MAKE) -C ./kernel modules_install INSTALL_MOD_PATH=../kmodules
+	$(MAKE) -C ./kernel modules_install INSTALL_MOD_PATH=../kmodules $(IGNORE_FAIL);
 	@echo 'Importing kernel modules from ./kernel'
-	$(MAKE) -C ./kernel headers_install INSTALL_HDR_PATH=../kheaders
+	$(MAKE) -C ./kernel headers_install INSTALL_HDR_PATH=../kheaders $(IGNORE_FAIL);
 	@echo 'Importing kernel_version'
-	$(MAKE) -s -C ./kernel kernelrelease > kernel_version;
+	$(MAKE) -s -C ./kernel kernelrelease > kernel_version; 
 	@echo 'Importing kernel_config'
-	@cp ./kernel/.config ./kernel_config
+	@cp ./kernel/.config ./kernel_config;
 
 # Intel 64 bit targets
 import_core_linux/amd64 import_core_linux/x86_64: setarch
 	@echo 'importing amd64 binaries' 
 	@cp -rn ./kernel/arch/x86/boot/bzImage .
-	@cp -rn ./kernel/vmlinux .
 
 # Arm 64 bit targets
 import_core_linux/arm64 import_core_linux/arm/v7 import_core_linux/arm/v6: setarch
 	@echo 'importing arm64 binaries' 
 	@cp -rn ./kernel/arch/arm64/boot/Image .
-	@cp -rn ./kernel/vmlinux .
 
 # Clean build files	
 .PHONY: clean
@@ -147,7 +145,7 @@ clean: clean_docker
 	# Clean dirty folders initramfs
 	@rm -rf ./fs ./fs.tar ./initramfs.cpio.gz;					
 	# Clean dirty folders kernel
-	@rm -rf ./kmodules ./kheaders ./Image ./bzImage ./vmlinuz ./vmlinux config version;					
+	@rm -rf ./kmodules ./kheaders ./Image ./bzImage ./vmlinuz ./vmlinux ./kernel_config ./kernel_version;					
 
 # Clean docker
 .PHONY: clean_docker
