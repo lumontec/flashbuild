@@ -2,7 +2,7 @@
 
 qemu-system-aarch64 \
   -kernel 2_kernel/src/arch/arm64/boot/Image \
-  -initrd 3_initramfs/initramfs.cpio.gz \
+  -initrd 3_initramfs/initramfs.cpio \
   -m 2048 \
   -M virt \
   -cpu cortex-a53 \

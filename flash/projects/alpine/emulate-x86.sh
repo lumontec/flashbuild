@@ -2,7 +2,7 @@
 
 # Emulate with qemu
 qemu-system-x86_64  \
-  -initrd 3_initramfs/initramfs.cpio.gz \
+  -initrd 3_initramfs/initramfs.cpio \
   -kernel 2_kernel/vmlinuz \
   -m 2048 \
   -append "console=ttyS0 nokaslr" \

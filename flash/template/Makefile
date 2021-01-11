@@ -71,7 +71,7 @@ all: clean_docker docker fs archive
 .PHONY: archive
 archive:
 	# Generate initramfs as cpio archive
-	@cd ./fs && find . -print0 | cpio --null -ov --format=newc | gzip -9 > ../initramfs.cpio.gz
+	@cd ./fs && find . -print0 | cpio --null -ov --format=newc > ../initramfs.cpio
 
 # Generate filesystem from container
 .PHONY: fs
