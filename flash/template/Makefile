@@ -98,7 +98,8 @@ install_kernel:
 .PHONY: docker
 docker: $(CROSS_BUILD) 
 	@echo 'Creating container ..'
-	@docker create --name flash_initramfs flash_initramfs $(IGNORE_FAIL);
+	@docker rm flash_initramfs $(IGNORE_FAIL) $(SIL_STDE);
+	@docker run --name flash_initramfs flash_initramfs $(IGNORE_FAIL);
 
 # Cross build 
 .PHONY: crossbuild
