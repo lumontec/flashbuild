@@ -2,14 +2,14 @@
 
 FLASHbuild is your faster option for hacking with custom user/kernel space code. 
 The project eats *Dockerfile + kernel binary/sources* and magically spits out a *initramfs image* that can be immediately loaded on qemu.
-Includes a simple set of scripts to help you build and customize a fully bootable linux os image in the shortest time with a simple and intuitive Docker based process. 
-This will cover all the cases in which you need a specialized quick and dirty linux distro for your personal hacks and projects without getting crazy with yocto and friends.
-Can be used for testing custom executables or kernel modules (e.g. debugging both user and kernel interaction with gdb) in qemu on multiple architectures (arm64, amd64, powerpc, ..).
+Includes a simple set of scripts to help you build and customize a fully bootable linux os image in the shortest time with a simple and intuitive Docker based process.   
+This will cover all the cases in which you need a specialized quick and dirty linux distro for your personal hacks and projects without getting crazy with yocto and friends.   
+Can be used for testing custom executables or kernel modules (e.g. debugging both user and kernel interaction with gdb) in qemu on multiple architectures (arm64, amd64, powerpc, ..).   
 
-The project leverages the beauty and portability of latest docker buildkit technology, and takes inspiration by the excellent work of:
+The project leverages the beauty and portability of latest docker buildkit technology, and takes inspiration by the excellent work of:   
 
-[https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html](https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html)  
-[https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html](https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html)  
+[https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html](https://mudongliang.github.io/2017/09/12/how-to-build-a-custom-linux-kernel-for-qemu.html)    
+[https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html](https://mgalgs.github.io/2015/05/16/how-to-build-a-custom-linux-kernel-for-qemu-2015-edition.html)    
 
 ### Let`s roll ...
 Lets build ubuntu.. in 3 minutes.. after setup obviously
