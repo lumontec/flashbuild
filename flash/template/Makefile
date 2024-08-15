@@ -107,7 +107,7 @@ crossbuild:
 	$(info architecture ARCH = '$(ARCH)' was found)
 	@echo 'cross build:' $(CROSS_BUILD);
 	@echo 'CROSS building image for ARCH (EXPERIMENTAL)' $(ARCH);
-	@docker buildx build --platform=$(ARCH) -t flash_initramfs .;
+	@docker buildx build --platform=$(ARCH) -t flash_initramfs --load .;
 
 # Build 
 .PHONY: build
@@ -115,7 +115,7 @@ build:
 	$(info ARCH = '$(ARCH)' does not exist in '$(SUPP_ARCH)' will build against HOST architecture)
 	@echo 'cross build:' $(CROSS_BUILD);
 	echo 'Building image for ARCH' $(HOST_ARCH); 
-	docker buildx build -t  flash_initramfs .;
+	docker buildx build -t  flash_initramfs --load .;
 
 
 # Import headers modules 
