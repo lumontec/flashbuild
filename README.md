@@ -50,9 +50,9 @@ sudo apt install qemu-kvm qemu virt-manager virt-viewer libvirt-bin qemu-system-
 ##### 1 FLASH your OS
 Ok now we can start having some fun..
 
-Load ubuntu project:
+Build a bootable ubuntu container:
 ```bash
-make load PROJ=./flash/projects/ubuntu
+make all
 yes
 ```
 
